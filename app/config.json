@@ -1,0 +1,20 @@
+{
+  "smoothing": 0.3,
+  "mirror": false,
+  "camera_index": 0,
+  "use_cap_dshow": true,
+
+  "tmin_ms": 90,
+  "vmax_px": 60,
+  "k_in": 1.4,
+  "k_out": 0.9,
+  "margin": 0.003,
+
+  "click_on_touch": true,
+  "touch_polarity": "auto",
+
+  "zoom_gain": 1.8,
+  "wheel_step": 120,
+  "pinch_deadzone": 0.003,
+  "zoom_center_follow_cursor": true
+}

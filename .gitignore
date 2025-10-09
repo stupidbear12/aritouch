@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Conda environments
+.env/
+.venv/
+*.conda
+*.yml
+*.yaml
+
+# Anaconda temp
+.pkgs/
