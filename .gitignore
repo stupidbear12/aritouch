@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+*.pkl
+*.pyc
+*.pyo
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Project specific
+nul
+
+# Build folders (exclude build artifacts)
+build/
+dist/
+
+# Binary files in build/dist folders only
+build/*.exe
+build/*.dll
+build/*.pyd
+dist/*.exe
+dist/*.dll
+dist/*.pyd
+
+# Allow installer and output folders (managed by Git LFS)
+!output/
+!installer/
+
+output/
+
+*.zip
