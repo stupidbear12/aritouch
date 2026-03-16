@@ -1,12 +1,12 @@
-# app.py
 import os, time
 import cv2
 import win32api
 from app.config import load_config
 from app.camera import open_camera, read_frame
 from app.tracker import HandTracker
-from app.gestures import TouchZoomController, clamp
+from app.gestures import TouchZoomController
 from app.hud import draw_hud
+from utils.geometry import clamp
 
 def flip_horizontal(frame):
     return cv2.flip(frame, 1)
@@ -29,8 +29,6 @@ def main():
 
     tracker = HandTracker()
     zoom = TouchZoomController(cfg)
-
-    # 주 모니터 해상도
     SW, SH = win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
 
     mirror    = bool(cfg["mirror"])
