@@ -1,4 +1,3 @@
-# camera.py
 import cv2
 
 def open_camera(index=0, use_cap_dshow=True, width=1280, height=720):

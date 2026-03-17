@@ -3,3 +3,9 @@ mediapipe
 pywin32
 numpy
 pytest
+fastapi
+uvicorn[standard]
+httpx
+websockets
+aiosqlite
+pydantic

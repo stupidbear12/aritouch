@@ -1,4 +1,3 @@
-# hud.py
 import cv2
 
 def _fmt3(x):

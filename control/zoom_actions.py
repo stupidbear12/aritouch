@@ -33,3 +33,9 @@ class ZoomActions:
         finally:
             _ctrl_up()
 
+    def zoom_in(self, ticks: int = 1) -> None:
+        self.scroll_with_ctrl(abs(ticks))
+
+    def zoom_out(self, ticks: int = 1) -> None:
+        self.scroll_with_ctrl(-abs(ticks))
+

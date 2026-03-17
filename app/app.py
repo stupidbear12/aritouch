@@ -14,16 +14,31 @@ def flip_horizontal(frame):
 def to_screen_xy(x, y, SW, SH):
     return int(x * SW), int(y * SH)
 
+def _make_event_queue(cfg):
+    srv = cfg.get("server_url", "")
+    bid = cfg.get("bed_id", "")
+    if not srv or not bid:
+        return None, bid
+    try:
+        from net.api_client import AirTouchClient
+        from net.event_queue import EventQueue
+        client = AirTouchClient(base_url=srv)
+        eq = EventQueue(client, flush_interval=5.0)
+        eq.start()
+        return eq, bid
+    except Exception:
+        return None, bid
+
 def main():
     here = os.path.dirname(os.path.abspath(__file__))
     cfg  = load_config(os.path.join(here, "config.json"))
 
     cap = open_camera(
-    cfg["camera_index"],
-    cfg["use_cap_dshow"],
-    width=int(cfg.get("camera_width", 1280)),
-    height=int(cfg.get("camera_height", 720))
-)
+        cfg["camera_index"],
+        cfg["use_cap_dshow"],
+        width=int(cfg.get("camera_width", 1280)),
+        height=int(cfg.get("camera_height", 720))
+    )
     if not cap or not cap.isOpened():
         print("Camera open failed"); return
 
@@ -38,6 +53,8 @@ def main():
 
     prev = time.time()
     fps_ma = 30.0
+
+    eq, bed_id = _make_event_queue(cfg)
 
     print("[Keys] q/ESC: exit, m: mirror, s: smoothing toggle")
 
@@ -86,6 +103,18 @@ def main():
                     Xs, Ys, int(now*1000), SW, SH
                 )
 
+            if eq and bed_id:
+                eq.put({
+                    "bed_id": bed_id,
+                    "event_type": "status",
+                    "severity": 0,
+                    "data": {
+                        "hand_detected": has,
+                        "touching": overlay.get("touching", False),
+                        "fps": round(fps_ma, 1),
+                    },
+                })
+
             info = {
                 "u": u, "v": v, "nx": nx, "ny": ny, "nz": nz,
                 "X": Xs, "Y": Ys, "fps": fps_ma, "mirror": mirror,
@@ -100,6 +129,8 @@ def main():
             if k == ord('s'): smoothing = 0.5 if abs(smoothing-0.3)<1e-9 else 0.3
 
     finally:
+        if eq:
+            eq.stop()
         try: cap.release()
         except: pass
         cv2.destroyAllWindows()
