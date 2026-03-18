@@ -1,3 +1,5 @@
+# DEPRECATED: Replaced by gesture/ modular pipeline (gesture_applier, candidate_scorer, etc.)
+# Kept for reference only. Use core/mediapipe_runner.py + gesture/ modules in new code.
 from math import hypot
 from utils.geometry import clamp
 from control.mouse_actions import MouseController

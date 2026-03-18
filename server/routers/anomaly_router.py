@@ -16,7 +16,20 @@ async def post_events(batch: BehaviorEventBatch):
     db = await get_db()
     ids = await anomaly_service.store_events(db, batch.events)
 
-    for ev, eid in zip(batch.events, ids):
+    # 이상행동 감지: 각 이벤트에 대해 규칙 평가
+    detected: list = []
+    for ev in batch.events:
+        anomalies = await anomaly_service.detect_anomalies(db, ev)
+        detected.extend(anomalies)
+
+    # 감지된 anomaly 이벤트 저장
+    anomaly_ids = []
+    if detected:
+        anomaly_ids = await anomaly_service.store_events(db, detected)
+
+    # severity >= 2 이벤트를 WebSocket으로 브로드캐스트
+    all_events = list(zip(batch.events, ids)) + list(zip(detected, anomaly_ids))
+    for ev, eid in all_events:
         if ev.severity >= 2:
             alert = AlertMessage(
                 bed_id=ev.bed_id,
@@ -28,7 +41,7 @@ async def post_events(batch: BehaviorEventBatch):
             )
             await manager.broadcast(alert, ev.bed_id)
 
-    return {"stored": len(ids), "ids": ids}
+    return {"stored": len(ids), "ids": ids, "anomalies_detected": len(detected)}
 
 
 @router.get("")

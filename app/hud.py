@@ -38,4 +38,10 @@ def draw_hud(frame, info, overlay):
     cv2.putText(hud, f"pinch0={_fmt3(pd0)} pinch={_fmt3(pd)}  wheelTicks={ticks}  polarity={pol}",
                 (10,115), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (180,220,255), 2)
 
+    gesture = overlay.get("gesture")
+    if gesture:
+        color = (0, 255, 0) if gesture == "IDLE" else (0, 100, 255)
+        cv2.putText(hud, f"GESTURE: {gesture}",
+                    (10, 145), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+
     return hud

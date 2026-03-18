@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum, auto
+from typing import Optional
 
-from gesture.config import GestureConfig
+from gesture.config import GestureConfig, PatientProfile
 from utils.geometry import clamp
 
 
@@ -18,8 +19,9 @@ class GestureLabel(Enum):
 
 class RuleBasedScorer:
 
-    def __init__(self, config: GestureConfig):
+    def __init__(self, config: GestureConfig, profile: Optional[PatientProfile] = None):
         self.cfg = config
+        self.profile = profile or PatientProfile()
 
     def score(
         self,
@@ -30,8 +32,13 @@ class RuleBasedScorer:
         idx_angle = angles.get("idx", 180.0)
         mid_angle = angles.get("mid", 180.0)
 
-        click_score = clamp((self.cfg.theta_click_in - idx_angle) / 15.0, 0.0, 1.0)
-        drag_score = clamp((self.cfg.theta_drag_in - mid_angle) / 15.0, 0.0, 1.0)
+        # preferred_sensitivity로 threshold 스케일링: 감도가 높을수록 더 쉽게 발동
+        sens = clamp(self.profile.preferred_sensitivity, 0.1, 3.0)
+        effective_click_in = self.cfg.theta_click_in * (1.0 + 0.1 * (sens - 1.0))
+        effective_drag_in  = self.cfg.theta_drag_in  * (1.0 + 0.1 * (sens - 1.0))
+
+        click_score = clamp((effective_click_in - idx_angle) / 15.0, 0.0, 1.0)
+        drag_score  = clamp((effective_drag_in  - mid_angle) / 15.0, 0.0, 1.0)
         pinch_score = clamp(1.0 - pinch_dist / 50.0, 0.0, 1.0) if z_active else 0.0
 
         idle_score = clamp(1.0 - max(click_score, drag_score, pinch_score), 0.0, 1.0)

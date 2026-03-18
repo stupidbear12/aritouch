@@ -11,7 +11,7 @@ from control.zoom_actions import ZoomActions
 from control.cursor_manager import CursorManager
 from core.filters import EMAFilter
 from gesture.candidate_scorer import GestureLabel
-from gesture.config import GestureConfig
+from gesture.config import GestureConfig, PatientProfile
 from utils.constants import IDC_HAND, IDC_ARROW
 
 
@@ -26,18 +26,32 @@ class ApplyResult:
 
 class CursorMapper:
 
-    def __init__(self, sw: int, sh: int, ema_alpha: float = 0.6):
+    def __init__(
+        self,
+        sw: int,
+        sh: int,
+        ema_alpha: float = 0.6,
+        profile: "PatientProfile | None" = None,
+    ):
         self.sw = sw
         self.sh = sh
         self._ema_x = EMAFilter(ema_alpha)
         self._ema_y = EMAFilter(ema_alpha)
+        # hand_range_limit: 커서가 이동 가능한 화면 영역 비율 (0.8 = 중앙 80%)
+        limit = (profile.hand_range_limit if profile else 1.0)
+        margin_x = int(sw * (1.0 - limit) / 2)
+        margin_y = int(sh * (1.0 - limit) / 2)
+        self._x_lo = margin_x
+        self._x_hi = sw - 1 - margin_x
+        self._y_lo = margin_y
+        self._y_hi = sh - 1 - margin_y
 
     def map(self, norm_x: float, norm_y: float) -> tuple[int, int]:
         raw_x = norm_x * self.sw
         raw_y = norm_y * self.sh
         sx = self._ema_x.update(raw_x)
         sy = self._ema_y.update(raw_y)
-        return int(max(0, min(sx, self.sw - 1))), int(max(0, min(sy, self.sh - 1)))
+        return int(max(self._x_lo, min(sx, self._x_hi))), int(max(self._y_lo, min(sy, self._y_hi)))
 
 
 class GestureApplier:
@@ -49,12 +63,14 @@ class GestureApplier:
         zoom: ZoomActions,
         cursor: CursorManager,
         cursor_mapper: CursorMapper,
+        profile: Optional[PatientProfile] = None,
     ):
         self.cfg = config
         self.mouse = mouse
         self.zoom = zoom
         self.cursor = cursor
         self.mapper = cursor_mapper
+        self.profile = profile or PatientProfile()
         self._dragging = False
         self._last_apply_ms: float = 0
         self._pinch_accum: float = 0.0
